@@ -1,5 +1,7 @@
 const usermodel = require("../Model/Usermodel")
 const bcryptjs = require("bcryptjs")
+const jwt = require("jsonwebtoken")
+const cloudinary = require("../utils/cloudinary")
 
 
 const Usersignup = async (req, res) =>{
@@ -44,7 +46,9 @@ const userLogin = async(req, res)=>{
        }else{
          const correctpassword =  await bcryptjs.compare(password, existemail.password )
          if (correctpassword) {
-          res.status(200).send({message:"Login successful", status:true}) 
+          let secretKey = "secretKey"
+          const token =  await jwt.sign({email}, secretKey , {expiresIn:"1d"})
+          res.status(200).send({message:"Login successful", status:true, token}) 
          }else{
           res.status(405).send({message:"Invalid Password", status:false}) 
          }
@@ -56,5 +60,60 @@ const userLogin = async(req, res)=>{
     }
 }
 
+const VerifyUser = async (req, res)=>{
+  try {
+    let token = req.headers.authorization.split(" ")[1]
+  console.log(token);
+   const verifytoken = await jwt.verify(token, "secretKey")
+   console.log(verifytoken);
+    if (!verifytoken) {
+    res.status(405).send({message:"token verifucation failed", status:false})
+   }else{
+     res.status(200).send({message:"token Verified", status:true})
+   }
 
-module.exports = {Usersignup, userLogin}
+  } catch (error) {
+    console.log(error);
+    if (error.JsonWebTokenError) {
+      res.status(407).send({message:error.JsonWebTokenError, status:false}) 
+    }
+    
+  }
+}
+
+const uploadProfile = async(req, res) =>{
+   try {
+    console.log(req.body);
+    let token = req.headers.authorization.split(" ")[1]
+   const verifytoken = await jwt.verify(token, "secretKey")
+   console.log(verifytoken.email);
+   if (!verifytoken) {
+    res.status(402).send({message:"error verifying token", status:false})
+   }else{
+    const {image} = req.body
+    const uplodimage =  await cloudinary.uploader.upload(image)
+   
+
+     if (uplodimage) {
+     const update =  await usermodel.findOneAndUpdate(
+        {email:verifytoken.email},
+        {profileimage:uplodimage.secure_url},
+        {new:true}
+       )
+
+       if (update) {
+        res.status(200).send({message:"profile updated successfully", status:true})
+       }else{
+        res.status(400).send({message:"error updating profile", status:false})
+       }
+       
+     }
+   }
+    
+   } catch (error) {
+    res.status(500).send({message:error.message, status:false})
+   }
+}
+
+
+module.exports = {Usersignup, userLogin, VerifyUser, uploadProfile}
