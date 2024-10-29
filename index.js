@@ -4,6 +4,7 @@ const mongoose = require("mongoose")
 require("dotenv").config()
 const userrouter = require("./Routes/Userroute")
 const cors = require("cors")
+const socket = require("socket.io")
 
 //middlewares
 app.use(express.json())
@@ -41,7 +42,16 @@ connect()
 
 const port = 5002
 
-app.listen(port,()=>{
+const connection = app.listen(port,()=>{
     console.log("app started on port " + port);
     
+})
+
+const io = socket(connection,{
+  cors:{origin:"*"}
+})
+
+io.on("connection",(socket)=>{
+  console.log("A user connected successfully");
+  
 })

@@ -2,6 +2,7 @@ const usermodel = require("../Model/Usermodel")
 const bcryptjs = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const cloudinary = require("../utils/cloudinary")
+const Sendmail = require("../utils/mailer")
 
 
 const Usersignup = async (req, res) =>{
@@ -19,6 +20,7 @@ const Usersignup = async (req, res) =>{
             password:hashedpassword
           })
           if (user) {
+            Sendmail(firstname,email)
             res.status(200).send({message:"Signup successful", status:true}) 
           }else{
             res.status(403).send({message:"error occur while creating user", status:false}) 
