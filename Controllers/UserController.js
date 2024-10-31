@@ -50,7 +50,7 @@ const userLogin = async(req, res)=>{
          if (correctpassword) {
           let secretKey = "secretKey"
           const token =  await jwt.sign({email}, secretKey , {expiresIn:"1d"})
-          res.status(200).send({message:"Login successful", status:true, token}) 
+          res.status(200).send({message:"Login successful", status:true, token, existemail}) 
          }else{
           res.status(405).send({message:"Invalid Password", status:false}) 
          }

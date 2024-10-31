@@ -51,7 +51,6 @@ const io = socket(connection,{
   cors:{origin:"*"}
 })
 
-io.on("connection",(socket)=>{
-  console.log("A user connected successfully");
-  
-})
+
+module.exports ={io}
+require("./utils/socket")
